@@ -11,16 +11,16 @@ bot.onText(/(\/[a-zA-Z]+)/, (msg, match) => {
   var command = match[0];
   commands = {
     '/website': 'https://www.etherblue.org/',
-    '/twitter': 'You can keep in touch with us at our ' +
+    '/twitter': 'Keep in touch with us at our ' +
                 '[twitter](https://twitter.com/EthereumBlue}',
     '/telegram': 'https://t.me/joinchat/HBDo00IO49STMJuIwJi08g',
-    '/whitepaper': 'You can read up on what we\'re trying to accomplish in' +
+    '/whitepaper': 'Read up on what we\'re trying to accomplish in' +
                     ' our [whitepaper](https://www.etherblue.org/whitepaper)',
-    '/github': 'You can see what we\'re working on at our [github]' +
+    '/github': 'Check out what we\'re working on at our [github]' +
                 '(https://github.com/BlueCrypto/)',
-    '/announcement': 'You can see where it all started at the bitcointalk' +
+    '/announcement': 'Check out where it all started at the bitcointalk' +
                       '[announcement](https://bitcointalk.org/index.php?topic=2279214.0)',
-    '/discord': 'You can join us for a chat in our [discord](https://discord.gg/vKxnqxX)',
+    '/discord': 'Join us for a chat in our [discord](https://discord.gg/vKxnqxX)',
     '/reddit': 'https://www.reddit.com/r/BlueCrypto/',
     '/cmc': 'https://coinmarketcap.com/currencies/ethereum-blue/',
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
