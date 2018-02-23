@@ -14,14 +14,14 @@ bot.onText(/(\/[a-zA-Z]+)/, (msg, match) => {
     '/twitter': 'Keep in touch with us at our ' +
                 '[twitter](https://twitter.com/EthereumBlue}',
     '/telegram': 'https://t.me/joinchat/HBDo00IO49STMJuIwJi08g',
-    '/whitepaper': 'Read up on what we\'re trying to accomplish in' +
-                    ' our [whitepaper](https://www.etherblue.org/whitepaper)',
-    '/github': 'Check out what we\'re working on at our [github]' +
-                '(https://github.com/BlueCrypto/)',
-    '/announcement': 'Check out where it all started at the bitcointalk' +
+    '/whitepaper': 'Read up on what we\'re trying to accomplish in ' +
+                    'our [whitepaper](https://www.etherblue.org/whitepaper)',
+    '/github': 'Check out what we\'re working on at our ' +
+                '[github](https://github.com/BlueCrypto/)',
+    '/announcement': 'Check out where it all started at the bitcointalk ' +
                       '[announcement](https://bitcointalk.org/index.php?topic=2279214.0)',
     '/discord': 'Join us for a chat in our [discord](https://discord.gg/vKxnqxX)',
-    '/reddit': 'https://www.reddit.com/r/BlueCrypto/',
+    '/reddit': 'Upvote us at our [subreddit](https://www.reddit.com/r/BlueCrypto/)',
     '/cmc': 'https://coinmarketcap.com/currencies/ethereum-blue/',
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
     '/team': 'You can meet the team [here](https://www.etherblue.org/team-blue)'
