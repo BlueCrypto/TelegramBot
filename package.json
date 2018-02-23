@@ -1,8 +1,8 @@
 {
-  "name": "berubot",
+  "name": "bluebot",
   "version": "0.1.0",
-  "description": "A telegram bot for blue's channel",
-  "main": "berubot.js",
+  "description": "A telegram bot for Blue's channel",
+  "main": "bluebot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
