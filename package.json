@@ -1,0 +1,22 @@
+{
+  "name": "berubot",
+  "version": "0.1.0",
+  "description": "A telegram bot for blue's channel",
+  "main": "berubot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.30.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlueCrypto/TelegramBot.git"
+  },
+  "author": "baronvonbadguy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BlueCrypto/TelegramBot/issues"
+  },
+  "homepage": "https://github.com/BlueCrypto/TelegramBot#readme"
+}
