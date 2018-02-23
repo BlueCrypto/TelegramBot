@@ -1,18 +1,14 @@
 const TelegramBot = require('node-telegram-bot-api');
-
 const token = process.env.BLUE_BOT_API_KEY
-// Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, {polling: true});
 
 bot.onText(/(\/[a-zA-Z]+)/, (msg, match) => {
-  // 'msg' is the received Message from Telegram
-  // 'match' is the result of executing the regexp above on the text content
-  // of the message
   const chatId = msg.chat.id;
+
   if (match.length < 1) {
     return
   }
-  const command = match[0];
+  var command = match[0];
   commands = {
     '/website': 'https://www.etherblue.org/',
     '/twitter': 'https://twitter.com/EthereumBlue',
