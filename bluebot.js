@@ -4,7 +4,7 @@ const bot = new TelegramBot(token, {polling: true});
 
 bot.onText(/(\/[a-zA-Z]+)/, (msg, match) => {
   const chatId = msg.chat.id;
-
+  // console.log(msg)
   if (match.length < 1) {
     return
   }
@@ -20,9 +20,14 @@ bot.onText(/(\/[a-zA-Z]+)/, (msg, match) => {
     '/reddit': 'https://www.reddit.com/r/BlueCrypto/',
     '/cmc': 'https://coinmarketcap.com/currencies/ethereum-blue/',
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
-    '/team': 'https://www.etherblue.org/team-blue'
+    '/team': 'You can meet the team [here](https://www.etherblue.org/team-blue)'
   };
-  if (command in commands){
-    bot.sendMessage(chatId, commands[command]);
+  var options = {
+    'parse_mode': 'markdown',
+    'disable_web_page_preview': true
   }
+  if (command in commands){
+    bot.sendMessage(chatId, commands[command], options);
+  }
+  bot.deleteMessage(chatId, msg.message_id);
 });
