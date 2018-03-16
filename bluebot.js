@@ -21,8 +21,7 @@ const commands = {
     '/cmc': 'https://coinmarketcap.com/currencies/ethereum-blue/',
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
     '/team': 'You can meet the team [here](https://www.etherblue.org/team-blue)',
-    '/price': "Please don't speculate about price here.",
-    '/pp': ''
+    '/price': ''
 };
 
 var last_command_time = {};
@@ -89,7 +88,7 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   var help = "I'm Beru! I can help you, just type any of these commands:\n";
   commands['/help'] = help + Object.keys(commands).join('\n');
 
-  if(command == "/pp") {
+  if(command == "/price") {
     price(chatId, options);
     bot.deleteMessage(chatId, msg.message_id);
   }
