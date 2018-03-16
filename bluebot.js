@@ -58,10 +58,9 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   var user = msg.from.username;
   var command = match[0];
 
-  // if the command isn't valid, delete it and don't respond
+  // if the command isn't valid, don't respond
   if (Object.keys(commands).indexOf(command) < 0){
-    console.log(`invalid command: ${command} from user: ${user}`)
-    bot.deleteMessage(chatId, msg.message_id);
+    console.log(`unrecognized command: ${command} from user: ${user}`)
     return
   };
   // if the command has been recently reponsed to, delete
