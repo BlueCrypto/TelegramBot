@@ -3,52 +3,9 @@ const token = process.env.BLUE_BOT_API_KEY
 const bot = new TelegramBot(token, {polling: true});
 const cmc = require('cmc-api');
 
-function price() {
-  cmc.getCoin("Ethereum-Blue")
-    .then(coin => {
-      price_usd = coin[0].price_usd;
-      price_btc = coin[0].price_btc;
-      perc = coin[0].percent_change_24h;
-      out = `BLUE is currently trading at ${(price_btc *100000000).toLocaleString()} Sats or $${price_usd} (${perc}%)`;
-      bot.sendMessage(chatId, out, options);
-      p();
-    })
-    .catch(error => {
-      out = "Sorry! Can't get the price for you right now :(";
-      console.log(out);
-    });
-};
+const COMMAND_RATE_LIMIT = 30 * 1000;
 
-bot.onText(/(\/[a-zA-Z]+)/, (msg, match) => {
-  const chatId = msg.chat.id;
-  console.log(msg);
-  console.log(chatId);
-  var user = msg.from.username;
-  if (match.length < 1) {
-    return
-  }
-
-  var options = {
-    'parse_mode': 'markdown',
-    'disable_web_page_preview': true
-  };
-
-  var help = "I'm Beru! I can help you, just type any of these commands:\n";
-  help += "/website\n";
-  help += "/twitter\n";
-  help += "/telegram\n";
-  help += "/whitepaper\n";
-  help += "/github\n";
-  help += "/announcement\n";
-  help += "/discord\n";
-  help += "/reddit\n";
-  help += "/cmc\n";
-  help += "/youtube\n";
-  help += "/team\n";
-  help += "/price\n";
-  help += "/help\n";
-  var command = match[0];
-  commands = {
+const commands = {
     '/website': 'https://www.etherblue.org/',
     '/twitter': 'Keep in touch with us at our ' +
                 '[twitter](https://twitter.com/EthereumBlue',
@@ -65,20 +22,79 @@ bot.onText(/(\/[a-zA-Z]+)/, (msg, match) => {
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
     '/team': 'You can meet the team [here](https://www.etherblue.org/team-blue)',
     '/price': "Please don't speculate about price here.",
-    '/help': help,
     '/pp': ''
+};
+
+var last_command_time = {};
+
+function init_last_command_time() {
+  for (var key in commands) {
+    last_command_time[key] = 0
+  }
+};
+
+init_last_command_time();
+
+function price(chatId, options) {
+  cmc.getCoin("Ethereum-Blue")
+    // this function is called when the web request Promise returns
+    .then(coin => {
+      price_usd = coin[0].price_usd;
+      price_btc = coin[0].price_btc;
+      perc = coin[0].percent_change_24h;
+      out = `BLUE is currently trading at ${(price_btc *100000000).toLocaleString()} Sats or $${price_usd} (${perc}%)`;
+      bot.sendMessage(chatId, out, options);
+    })
+    // in case the cmc api is not available, notify the user something
+    // went wrong
+    .catch(error => {
+      out = "Sorry! Can't get the price for you right now :(";
+      bot.sendMessage(chatId, out, options);
+      console.log(error);
+    });
+};
+
+bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  var user = msg.from.username;
+  var command = match[0];
+
+  // if the command isn't valid, delete it and don't respond
+  if (Object.keys(commands).indexOf(command) < 0){
+    console.log(`invalid command: ${command} from user: ${user}`)
+    bot.deleteMessage(chatId, msg.message_id);
+    return
   };
-  var username = ''
-  console.log(command);
-  if (command in commands){
-    if(command == "/pp") {
-      sleep(500);
-      console.log('price');
-      price(options, chatId, bot);
-    }
-    else {
-      bot.sendMessage(chatId, `${user}, ${commands[command]}`, options);
-      bot.deleteMessage(chatId, msg.message_id);
-    }
+  // if the command has been recently reponsed to, delete
+  // and dont respond
+  if (Date.now() - last_command_time[command] < COMMAND_RATE_LIMIT) {
+    console.log(`limited on the ${command} command from user: ${user}`)
+    bot.deleteMessage(chatId, msg.message_id);
+    return
+  } else {
+    // update the last command time to now
+    last_command_time[command] = Date.now()
+  };
+  console.log(`responding to command : ${command}`)
+  console.log(msg);
+  console.log(chatId);
+
+  // rich link previews can get annoying so we disable them
+  var options = {
+    'parse_mode': 'markdown',
+    'disable_web_page_preview': true
+  };
+
+  // the help command lists all of the available commands
+  var help = "I'm Beru! I can help you, just type any of these commands:\n";
+  commands['/help'] = help + Object.keys(commands).join('\n');
+
+  if(command == "/pp") {
+    price(chatId, options);
+    bot.deleteMessage(chatId, msg.message_id);
+  }
+  else {
+    bot.sendMessage(chatId, `${user}, ${commands[command]}`, options);
+    bot.deleteMessage(chatId, msg.message_id);
   };
 });
