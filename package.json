@@ -7,8 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.30.0",
-    "cmc-api": "1.0.1"
+    "cmc-api": "1.0.1",
+    "nedb": "^1.8.0",
+    "node-telegram-bot-api": "^0.30.0"
   },
   "repository": {
     "type": "git",
