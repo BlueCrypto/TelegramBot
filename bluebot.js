@@ -128,7 +128,6 @@ function giveaway(chatId, userId, options) {
 function safeDeleteMsg(msg) {
   var is_dm = msg.chat.id == msg.from.id;
   if (! is_dm) {
-    console.log('is_dm == ' + is_dm + ' chatId == ' + msg.chat.id + ' userId == ' + msg.from.id);
     // we can't delete messages in DMs so don't try
     bot.deleteMessage(msg.chat.id, msg.message_id);
   };
