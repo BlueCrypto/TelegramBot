@@ -48,7 +48,7 @@ var commands = {
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
     '/team': 'You can meet the team [here](https://www.etherblue.org/team-blue)',
     '/price': '',
-    '/giveaway': 'please DM me the /getcode command to receieve your code',
+    '/giveaway': 'please DM me the /getcode command to receive your code',
 };
 // the help command lists all of the available commands
 var help = "I'm Beru! I can help you, just type any of these commands:\n";
