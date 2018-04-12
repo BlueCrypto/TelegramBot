@@ -125,11 +125,20 @@ function giveaway(chatId, userId, options) {
 // ----------------
 
 // ----- COMMAND RESPONSE -----
+function safeDeleteMsg(msg) {
+  var is_dm = msg.chat.id == msg.from.id;
+  if (! is_dm) {
+    console.log('is_dm == ' + is_dm + ' chatId == ' + msg.chat.id + ' userId == ' + msg.from.id);
+    // we can't delete messages in DMs so don't try
+    bot.deleteMessage(msg.chat.id, msg.message_id);
+  };
+}
+
 bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   const chatId = msg.chat.id;
   var user = msg.from.username;
   var command = match[0];
-  var is_dm = chatId != msg.from.userId;
+  var is_dm = chatId == msg.from.id;
 
   var is_valid_command = Object.keys(commands).indexOf(command) >= 0;
   var is_valid_dm_command = dm_commands.indexOf(command) >= 0;
@@ -143,14 +152,13 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   var limited = Date.now() - last_command_time[command] < COMMAND_RATE_LIMIT;
   if (limited && ! is_dm) {
     console.log(`limited on the ${command} command from user: ${user}`);
-    safeDeleteMsg(chatId, msg);
+    safeDeleteMsg(msg);
   } else {
     // update the last command time to now
     last_command_time[command] = Date.now();
   };
   console.log(`responding to command : ${command}`);
   console.log(msg);
-  console.log(chatId);
 
   // rich link previews can get annoying so we disable them
   var options = {
@@ -160,14 +168,14 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
 
   if(command == "/price") {
     price(chatId, options);
-    safeDeleteMsg(chatId, msg);
+    safeDeleteMsg(msg);
   // only send users a code if the user is DMing beru
   } else if (command == "/getcode" && is_dm){
     giveaway(chatId, msg.from.id, options);
   }
   else if (is_valid_command) {
     bot.sendMessage(chatId, `${user}, ${commands[command]}`, options);
-    safeDeleteMsg(chatId, msg);
+    safeDeleteMsg(msg);
   };
 });
 // -------------
