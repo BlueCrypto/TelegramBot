@@ -50,7 +50,7 @@ var commands = {
     '/price': '',
     '/giveaway':  'We are giving out 20,000 BLUE and a Trezor T! '
                   + 'You can enter the givaway [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway). '
-                  + 'Make sure to also click [here](http://t.me/beru_dev_bot?start=getcode) so I give you your confidential entry code!',
+                  + 'Make sure to also click [here](http://t.me/beru_blue_bot?start=getcode) so I give you your confidential entry code!',
 };
 // the help command lists all of the available commands
 var help = "I'm Beru! I can help you, just type any of these commands:\n";
@@ -104,7 +104,8 @@ function giveaway(chatId, userId, options) {
   codes.findOne({ 'userId': userId }, function (err, doc) {
     if (doc) {
       console.log('found existing code for user: ' + doc.code);
-      var code_msg = 'Your giveaway code is: ' + doc.code;
+      var code_msg = 'Your giveaway code is: ' + doc.code
+                      + '\nEnter it [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway)';
       bot.sendMessage(chatId, code_msg, options);
     } else {
       var code_search = {'collection': 'unassigned_codes'};
@@ -113,7 +114,7 @@ function giveaway(chatId, userId, options) {
         // grab one from the top
         var code = doc.codes[0];
         var code_msg = 'Your giveaway code is: ' + code
-                        + ' enter it [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway)';
+                        + '\nEnter it [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway)';
         console.log('assigning code: ' + code + ' to user: ' + userId);
         var entry = { 'userId': userId, 'code': code };
         // insert a new record tying the code to the user
