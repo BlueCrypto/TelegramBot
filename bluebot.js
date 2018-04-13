@@ -2,12 +2,20 @@ const TelegramBot = require('node-telegram-bot-api');
 const cmc = require('cmc-api');
 var fs = require("fs");
 
+var AsyncLock = require('async-lock');
+var lock = new AsyncLock();
+
 const token = process.env.BLUE_BOT_API_KEY
 const bot = new TelegramBot(token, {polling: true});
 
 // ----- CODE DATABASE -------
 var Datastore = require('nedb')
   , codes = new Datastore({ filename: 'codes_db', autoload: true })
+
+codes.persistence.setAutocompactionInterval(300000);
+// Using a unique constraint with the index
+codes.ensureIndex({ fieldName: 'code', unique: true }, function (err) {
+});
 
 function load_codes() {
   // expects codes.json to be a file in the same directory
@@ -32,12 +40,13 @@ process.argv.forEach(function (val, index, array) {
 const COMMAND_RATE_LIMIT = 30 * 1000;
 
 var commands = {
-    '/website': 'Check out our website at https://www.etherblue.org/',
+    '/website': 'Check out our website at https://www.blueprotocol.com',
+    '/roadmap': 'Check out our roadmap [here](https://www.blueprotocol.com/roadmap/)',
     '/twitter': 'Keep in touch with us at our ' +
-                '[twitter](https://twitter.com/EthereumBlue)',
+                '[twitter](https://twitter.com/Blue_Protocol)',
     '/telegram': 'https://t.me/joinchat/HBDo00IO49STMJuIwJi08g',
     '/whitepaper': 'Read up on what we\'re trying to accomplish in ' +
-                    'our [whitepaper](https://www.etherblue.org/whitepaper)',
+                    'our [whitepaper](https://www.blueprotocol.com/whitepaper.pdf)',
     '/github': 'Check out what we\'re working on at our ' +
                 '[github](https://github.com/BlueCrypto/)',
     '/announcement': 'Check out where it all started at the bitcointalk ' +
@@ -46,7 +55,7 @@ var commands = {
     '/reddit': 'Upvote us at our [subreddit](https://www.reddit.com/r/BlueCrypto/)',
     '/cmc': 'https://coinmarketcap.com/currencies/ethereum-blue/',
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
-    '/team': 'You can meet the team [here](https://www.etherblue.org/team-blue)',
+    '/team': 'You can meet the team [here](https://www.blueprotocol.com/vision/)',
     '/price': '',
     '/giveaway':  'We are giving out 20,000 BLUE and a Trezor T! '
                   + 'You can enter the givaway [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway). '
@@ -110,26 +119,32 @@ function giveaway(chatId, userId, options) {
     } else {
       var code_search = {'collection': 'unassigned_codes'};
       // retrieve the list of codes
-      codes.findOne(code_search, function(err, doc) {
-        // grab one from the top
-        var code = doc.codes[0];
-        var code_msg = 'Your giveaway code is: ' + code
-                        + '\nEnter it [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway)';
-        console.log('assigning code: ' + code + ' to user: ' + userId);
-        var entry = { 'userId': userId, 'code': code };
-        // insert a new record tying the code to the user
-        codes.insert( entry, function (err, newDoc) {
-            // update the code list by popping the code we just 
-            // got off the stack to prevent it from being
-            // assigned to another user
-            codes.update(
-              code_search,
-              { $pop: { 'codes': -1 } }, 
-              {}, function () {}
-            );
-        });
-        // send the code to the user
-        bot.sendMessage(chatId, code_msg, options);
+      lock.acquire('key', function(done) {
+          codes.findOne(code_search, function(err, doc) {
+            console.log(i);
+            // grab one from the top
+            var code = doc.codes[0];
+            var code_msg = 'Your giveaway code is: ' + code
+                            + '\nEnter it [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway)';
+            console.log('assigning code: ' + code + ' to user: ' + userId);
+            var entry = { 'userId': userId, 'code': code };
+            // insert a new record tying the code to the user
+            codes.insert( entry, function (err, newDoc) {
+                // update the code list by popping the code we just 
+                // got off the stack to prevent it from being
+                // assigned to another user
+                codes.update(
+                  code_search,
+                  { $pop: { 'codes': -1 } }, 
+                  {}, function () {
+                    done();
+                  }
+                );
+            });
+            // send the code to the user
+            bot.sendMessage(chatId, code_msg, options);
+          });
+      }, function(err, ret) {
       });
     };
   });
