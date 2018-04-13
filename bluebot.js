@@ -167,7 +167,8 @@ function safeDeleteMsg(msg) {
 
 bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   const chatId = msg.chat.id;
-  var user = msg.from.username;
+  // use the username, or the first name with non ascii chars dropped
+  var user = msg.from.username || msg.from.first_name.replace(/[^\x00-\x7F]/g, "");
   var command = match[0];
   var is_dm = chatId == msg.from.id;
   var is_valid_command = Object.keys(commands).indexOf(command) >= 0;
@@ -208,7 +209,11 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   }
   else if (is_valid_command) {
     var safe_user = replaceAll(user, '_', '');
-    bot.sendMessage(chatId, `${safe_user}, ${commands[command]}`, options);
+    if (user) {
+      bot.sendMessage(chatId, `${safe_user}, ${commands[command]}`, options);
+    } else {
+      bot.sendMessage(chatId, `${commands[command]}`, options);
+    }
     safeDeleteMsg(msg);
   };
 });
