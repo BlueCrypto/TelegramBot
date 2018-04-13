@@ -8,6 +8,11 @@ var lock = new AsyncLock();
 const token = process.env.BLUE_BOT_API_KEY
 const bot = new TelegramBot(token, {polling: true});
 
+// ------ MISC -----------
+function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(find, 'g'), replace);
+}
+
 // ----- CODE DATABASE -------
 var Datastore = require('nedb')
   , codes = new Datastore({ filename: 'codes_db', autoload: true })
@@ -202,7 +207,7 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
     giveaway(chatId, msg.from.id, options);
   }
   else if (is_valid_command) {
-    var safe_user = user.replace('_', '');
+    var safe_user = replaceAll(user, '_', '');
     bot.sendMessage(chatId, `${safe_user}, ${commands[command]}`, options);
     safeDeleteMsg(msg);
   };
