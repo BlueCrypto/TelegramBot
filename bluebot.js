@@ -32,9 +32,9 @@ process.argv.forEach(function (val, index, array) {
 const COMMAND_RATE_LIMIT = 30 * 1000;
 
 var commands = {
-    '/website': 'https://www.etherblue.org/',
+    '/website': 'Check out our website at https://www.etherblue.org/',
     '/twitter': 'Keep in touch with us at our ' +
-                '[twitter](https://twitter.com/EthereumBlue',
+                '[twitter](https://twitter.com/EthereumBlue)',
     '/telegram': 'https://t.me/joinchat/HBDo00IO49STMJuIwJi08g',
     '/whitepaper': 'Read up on what we\'re trying to accomplish in ' +
                     'our [whitepaper](https://www.etherblue.org/whitepaper)',
@@ -48,15 +48,25 @@ var commands = {
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
     '/team': 'You can meet the team [here](https://www.etherblue.org/team-blue)',
     '/price': '',
-    '/giveaway': 'please DM me the /getcode command to receive your code',
+    '/giveaway':  'We are giving out 20,000 BLUE and a Trezor T! '
+                  + 'You can enter the givaway [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway). '
+                  + 'Make sure to also click [here](http://t.me/beru_dev_bot?start=getcode) so I give you your confidential entry code!',
 };
 // the help command lists all of the available commands
 var help = "I'm Beru! I can help you, just type any of these commands:\n";
 commands['/help'] = help + Object.keys(commands).join('\n');
-commands['/start'] = commands['/help'];
+
+// all commands we dont want to show up in help 
+// must be added after we create the help command
+commands['/start'] = 'If you\'re interested in joining our [20,000 BLUE giveaway competition](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway) '
+                      + 'click the /getcode command for your confidential entry code.  If you want to see what else I can help '
+                      + 'you with, click the /help command.';
 
 // commands that don't just respond static text, or are unlimited
-var dm_commands = [ '/getcode', '/start' ];
+var dm_commands = ['/getcode', '/start' ];
+
+// commands that we choose not to limit
+var unlimited_commands = ['/giveaway']
 
 var last_command_time = {};
 
@@ -102,7 +112,8 @@ function giveaway(chatId, userId, options) {
       codes.findOne(code_search, function(err, doc) {
         // grab one from the top
         var code = doc.codes[0];
-        var code_msg = 'Your giveaway code is: ' + code;
+        var code_msg = 'Your giveaway code is: ' + code
+                        + ' enter it [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway)';
         console.log('assigning code: ' + code + ' to user: ' + userId);
         var entry = { 'userId': userId, 'code': code };
         // insert a new record tying the code to the user
@@ -127,9 +138,10 @@ function giveaway(chatId, userId, options) {
 // ----- COMMAND RESPONSE -----
 function safeDeleteMsg(msg) {
   var is_dm = msg.chat.id == msg.from.id;
-  if (! is_dm) {
+  if (! is_dm && msg.deleted != true) {
     // we can't delete messages in DMs so don't try
     bot.deleteMessage(msg.chat.id, msg.message_id);
+    msg.deleted = true
   };
 }
 
@@ -138,7 +150,6 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   var user = msg.from.username;
   var command = match[0];
   var is_dm = chatId == msg.from.id;
-
   var is_valid_command = Object.keys(commands).indexOf(command) >= 0;
   var is_valid_dm_command = dm_commands.indexOf(command) >= 0;
   // if the command isn't valid, don't respond
@@ -148,10 +159,13 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
   };
   // if the command has been recently reponsed to, delete
   // and dont respond
-  var limited = Date.now() - last_command_time[command] < COMMAND_RATE_LIMIT;
+  var limit_time_diff = Date.now() - last_command_time[command];
+  var is_unlimited = unlimited_commands.indexOf(command) >= 0;
+  var limited = (limit_time_diff < COMMAND_RATE_LIMIT && ! is_unlimited);
   if (limited && ! is_dm) {
     console.log(`limited on the ${command} command from user: ${user}`);
     safeDeleteMsg(msg);
+    return
   } else {
     // update the last command time to now
     last_command_time[command] = Date.now();
@@ -161,7 +175,7 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
 
   // rich link previews can get annoying so we disable them
   var options = {
-    'parse_mode': 'markdown',
+    'parse_mode': 'Markdown',
     'disable_web_page_preview': true
   };
 
@@ -169,11 +183,12 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
     price(chatId, options);
     safeDeleteMsg(msg);
   // only send users a code if the user is DMing beru
-  } else if (command == "/getcode" && is_dm){
+  } else if ((command == "/getcode" || msg.text == "/start getcode") && is_dm){
     giveaway(chatId, msg.from.id, options);
   }
   else if (is_valid_command) {
-    bot.sendMessage(chatId, `${user}, ${commands[command]}`, options);
+    var safe_user = user.replace('_', '');
+    bot.sendMessage(chatId, `${safe_user}, ${commands[command]}`, options);
     safeDeleteMsg(msg);
   };
 });
