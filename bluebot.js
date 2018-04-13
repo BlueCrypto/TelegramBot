@@ -63,7 +63,7 @@ var commands = {
     '/team': 'You can meet the team [here](https://www.blueprotocol.com/vision/)',
     '/price': '',
     '/giveaway':  'We are giving out 20,000 BLUE and a Trezor T! '
-                  + 'You can enter the givaway [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway). '
+                  + 'You can enter the giveaway [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway). '
                   + 'Make sure to also click [here](http://t.me/beru_blue_bot?start=getcode) so I give you your confidential entry code!',
 };
 // the help command lists all of the available commands
