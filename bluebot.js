@@ -121,7 +121,6 @@ function giveaway(chatId, userId, options) {
       // retrieve the list of codes
       lock.acquire('key', function(done) {
           codes.findOne(code_search, function(err, doc) {
-            console.log(i);
             // grab one from the top
             var code = doc.codes[0];
             var code_msg = 'Your giveaway code is: ' + code
