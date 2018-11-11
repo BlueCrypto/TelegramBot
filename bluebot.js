@@ -5,6 +5,8 @@ var fs = require("fs");
 var AsyncLock = require('async-lock');
 var lock = new AsyncLock();
 
+const antispam = require('./antispam');
+
 const token = process.env.BLUE_BOT_API_KEY
 const bot = new TelegramBot(token, {polling: true});
 
@@ -16,6 +18,9 @@ function replaceAll(str, find, replace) {
 // ----- CODE DATABASE -------
 var Datastore = require('nedb')
   , codes = new Datastore({ filename: 'codes_db', autoload: true })
+  , chatDB = new Datastore({ filename: 'chat_db', autoload: true })
+
+chatDB.loadDatabase();
 
 codes.persistence.setAutocompactionInterval(300000);
 // Using a unique constraint with the index
@@ -34,6 +39,12 @@ function load_codes() {
   }
 };
 
+function postImage(chatId, img) {
+  bot.sendPhoto(
+    chatId, img,
+  {caption: "Not financial advice :]"});  
+};
+
 process.argv.forEach(function (val, index, array) {
   if (val == 'init_codes') {
     load_codes();
@@ -42,7 +53,7 @@ process.argv.forEach(function (val, index, array) {
 // --------------------------
 
 // ----- COMMAND LOGIC ------
-const COMMAND_RATE_LIMIT = 30 * 1000;
+const COMMAND_RATE_LIMIT = 5 * 1000;
 
 var commands = {
     '/website': 'Check out our website at https://www.blueprotocol.com',
@@ -62,9 +73,13 @@ var commands = {
     '/youtube': 'https://www.youtube.com/channel/UCNtv0tIgBYofh4LTWKKZj7A',
     '/team': 'You can meet the team [here](https://www.blueprotocol.com/vision/)',
     '/price': '',
-    '/giveaway':  'We are giving out 20,000 BLUE and a Trezor T! '
-                  + 'You can enter the giveaway [here](https://gleam.io/Z2jRm/blue-protocols-trezor-t-and-20000-blue-giveaway). '
-                  + 'Make sure to also click [here](http://t.me/beru_blue_bot?start=getcode) so I give you your confidential entry code!',
+    '/price2': '',
+    '/pricw': '',
+    '/alex': 'Everyone say hi to Alex!',
+    '/hr': '',
+    '/yn': '',
+    '/moon': '',
+    '/btc': ''
 };
 // the help command lists all of the available commands
 var help = "I'm Beru! I can help you, just type any of these commands:\n";
@@ -77,10 +92,10 @@ commands['/start'] = 'If you\'re interested in joining our [20,000 BLUE giveaway
                       + 'you with, click the /help command.';
 
 // commands that don't just respond static text, or are unlimited
-var dm_commands = ['/getcode', '/start' ];
+var dm_commands = ['/start' ];
 
 // commands that we choose not to limit
-var unlimited_commands = ['/giveaway']
+var unlimited_commands = []
 
 var last_command_time = {};
 
@@ -94,25 +109,6 @@ init_last_command_time();
 // ---------------------------
 
 // ----- CUSTOM COMMANDS -----
-function price(chatId, options) {
-  cmc.getCoin("Ethereum-Blue")
-    // this function is called when the web request Promise returns
-    .then(coin => {
-      var price_usd = coin[0].price_usd;
-      var price_btc = coin[0].price_btc;
-      var perc = coin[0].percent_change_24h;
-      var out = `BLUE is currently trading at ${(price_btc *100000000).toLocaleString()} Sats or $${price_usd} (${perc}%)`;
-      bot.sendMessage(chatId, out, options);
-    })
-    // in case the cmc api is not available, notify the user something
-    // went wrong
-    .catch(error => {
-      var out = "Sorry! Can't get the price for you right now :(";
-      bot.sendMessage(chatId, out, options);
-      console.log(error);
-    });
-};
-
 function giveaway(chatId, userId, options) {
   // search for the user in the assigned codes
   codes.findOne({ 'userId': userId }, function (err, doc) {
@@ -166,6 +162,36 @@ function safeDeleteMsg(msg) {
 }
 
 bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
+function cmdprice(chatId, options, fun, morefun) {
+  console.log('price check');
+  cmc.getCoin("Ethereum-Blue")
+    // this function is called when the web request Promise returns
+    .then(coin => {
+      console.log(coin);
+      var price_usd = coin[0].price_usd;
+      var price_btc = coin[0].price_btc;
+      var perc = coin[0].percent_change_24h;
+      var pp = "";
+      if(perc.indexOf("-")===-1) {
+        pp = "+";
+      }
+      var out = `BLUE is currently trading at ${(price_btc *100000000).toLocaleString()} Sats or $${price_usd} (${pp}${perc}%)`;
+      if(morefun) {
+        var out = `BLUE is currently trading at ${(price_btc *10000000000).toLocaleString()} Sats or $${price_usd * 100} (${pp}${perc}00%)`;
+      }
+      else if(fun) {
+	var out = `BULE iss cureny treeding at ${(price_btc *100000000).toLocaleString()} stosehes. $${price_usd} (${pp}${perc}%)`;
+      }
+      bot.sendMessage(chatId, out, options);
+    })
+    // in case the cmc api is not available, notify the user something
+    // went wrong
+    .catch(error => {
+      var out = "Sorry! Can't get the price for you right now :(";
+      bot.sendMessage(chatId, out, options);
+      console.log(error);
+    });
+};
   const chatId = msg.chat.id;
   // use the username, or the first name with non ascii chars dropped
   var user = msg.from.username || msg.from.first_name.replace(/[^\x00-\x7F]/g, "");
@@ -192,7 +218,7 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
     last_command_time[command] = Date.now();
   };
   console.log(`responding to command : ${command}`);
-  console.log(msg);
+  //console.log(msg);
 
   // rich link previews can get annoying so we disable them
   var options = {
@@ -200,12 +226,50 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
     'disable_web_page_preview': true
   };
 
-  if(command == "/price") {
-    price(chatId, options);
+  if(command == "/price" || command == "/pricw" || command == "/price2") {
+    console.log("Price check command");
+    console.log(`${chatId} -- ${options} -- ${(command == "/pricw")}`);
+    console.log(price);
+    if(command == "/price2") {
+      out = `BLUE is currently trading at 8,934 Sats or $2.45 (+16,594%)`;
+      bot.sendMessage(chatId, out, options);
+      return;
+    }
+    cmdprice(chatId, options, (command == "/pricw"), (command == "/price2"));
+    console.log("Done Price check command");
     safeDeleteMsg(msg);
   // only send users a code if the user is DMing beru
+  } else if (command == "/hr") {
+    if(Math.random()>0.5) {
+      bot.sendMessage(chatId, `Beru rules in favor of the defendant. BERU'S JUDGEMENT IS FINAL`);
+    }
+    else {
+      bot.sendMessage(chatId, `Beru rules in opposition of the defendant. BERU'S JUDGEMENT IS FINAL`);
+    }
+  } else if (command == "/yn") {
+    if(Math.random()>0.5) {
+      bot.sendMessage(chatId, `YES! BERU'S DECISION IS FINAL`);
+    }
+    else {
+      bot.sendMessage(chatId, `NO! BERU'S DECISION IS FINAL`);
+    }
+  } else if(command == "/moon") {
+    var r = Math.random();
+    if(r < 0.33) {
+      postImage(chatId, "/root/TelegramBot/img/moon.jpg");
+    }
+    else if(r < 0.66) {
+      postImage(chatId, "/root/TelegramBot/img/chop.jpg");
+    }
+    else {
+      postImage(chatId, "/root/TelegramBot/img/dump.jpg");
+    }
   } else if ((command == "/getcode" || msg.text == "/start getcode") && is_dm){
     giveaway(chatId, msg.from.id, options);
+  }
+  else if(command == "/btc") {
+    var price = (Math.random() * 50000).toFixed(2);
+    bot.sendMessage(chatId, `BTC will be around $${price} in the next 24 hours or so.`);
   }
   else if (is_valid_command) {
     var safe_user = replaceAll(user, '_', '');
@@ -215,6 +279,94 @@ bot.onText(/^(\/[a-zA-Z]+)/, (msg, match) => {
       bot.sendMessage(chatId, `${commands[command]}`, options);
     }
     safeDeleteMsg(msg);
-  };
+  }
 });
 // -------------
+
+function modifyScore(increment, msg) {
+  chatDB.findOne({ user_id: msg.from.id },
+    function(err, doc) {
+      var score = 1;
+      if(!increment) {
+        score = -1;
+      }
+      console.log(`doc null ${doc == null}`);
+      if(err != undefined || doc == null) {
+        console.log(err);
+      }
+      else {
+        console.log(`Found existing user:`);
+        console.log(doc);
+        var old_score = parseInt(doc.score);
+        if(increment) {
+          score = old_score + 3;
+        }
+        else {
+          score = old_score - 1;
+        }
+        console.log(`User score was ${old_score}. We will update is to ${score}`);
+      }
+      var options = {
+        'parse_mode': 'Markdown',
+        'disable_web_page_preview': true
+      };
+      console.log(`User score was ${old_score}. Updating to ${score}`);
+      // bot.sendMessage(msg.chat.id, `User score was ${old_score}. Updating to ${score}`, options);
+      // bot.sendMessage(msg.chat.id, `${score}`, options);
+      if(score < 1 && !increment) {
+        safeDeleteMsg(msg);
+        bot.sendMessage(msg.from.id, "Your message was deleted due too excessive posting of links. Please engage the chat in conversation before posting any more links.");
+      }
+
+      chatDB.update({ user_id: msg.from.id },
+        { score: score, score: score, user_id: msg.from.id, username: msg.from.username, last_name: msg.from.last_name, first_name: msg.from.first_name },
+        { upsert: true },
+        function (err, numReplaced, upsert) {
+          console.log(err);
+          console.log(numReplaced);
+          console.log(upsert);
+        });
+
+    });
+}
+
+/*bot.onText(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, (msg, match) => {
+  console.log("LINK DETECTED");
+  modifyScore(false, msg);
+});*/
+bot.onText(/(\/score)/, (msg, match) => {
+  chatDB.findOne({ user_id: msg.from.id },
+    function(err, doc) {
+      if(err == undefined) {
+        var options = {
+          'parse_mode': 'Markdown',
+          'disable_web_page_preview': true
+        };
+        if(doc != undefined) {
+          bot.sendMessage(msg.chat.id, `${msg.from.first_name} score is: ${doc.score}. Going below a score of 1 means your messages will be deleted.`, options);
+        }
+        else {
+          bot.sendMessage(msg.chat.id, `You have no score so far, talk more in BLUE chat to avoid having your links deleted.`, options);
+        }
+      }
+    }
+  );
+});
+bot.onText(/(.*)/, (msg, match) => {
+  if(typeof(msg.entities) != 'undefined') {
+    // Contains some kind of URL or image, etc, lose points
+    for(var i=0;i<msg.entities.length;i++) {
+      //modifyScore(false, msg);
+      console.log(msg.entities[i]);
+      if(msg.entities[i].type == 'url') {
+        console.log("DECREMENT SCORE");
+        modifyScore(false, msg);
+      }
+    }
+  }
+  else {
+    // console.log("SCORE CHECK DETECTED");
+    modifyScore(true, msg);
+  }
+});
+
