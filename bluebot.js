@@ -284,19 +284,23 @@ function cmdprice(chatId, options, fun, morefun) {
 // -------------
 
 function modifyScore(increment, msg) {
+  if("-1001108272084" != msg.chat.id) {
+    return;
+  }
   chatDB.findOne({ user_id: msg.from.id },
     function(err, doc) {
       var score = 1;
       if(!increment) {
         score = -1;
       }
+      var old_score = score;
       console.log(`doc null ${doc == null}`);
       if(err != undefined || doc == null) {
         console.log(err);
       }
       else {
-        console.log(`Found existing user:`);
-        console.log(doc);
+        //console.log(`Found existing user:`);
+        //console.log(doc);
         var old_score = parseInt(doc.score);
         if(increment) {
           score = old_score + 3;
@@ -313,7 +317,7 @@ function modifyScore(increment, msg) {
       console.log(`User score was ${old_score}. Updating to ${score}`);
       // bot.sendMessage(msg.chat.id, `User score was ${old_score}. Updating to ${score}`, options);
       // bot.sendMessage(msg.chat.id, `${score}`, options);
-      if(score < 1 && !increment) {
+      if(score <= 1 && !increment) {
         safeDeleteMsg(msg);
         bot.sendMessage(msg.from.id, "Your message was deleted due too excessive posting of links. Please engage the chat in conversation before posting any more links.");
       }
@@ -330,10 +334,45 @@ function modifyScore(increment, msg) {
     });
 }
 
+
 /*bot.onText(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/, (msg, match) => {
   console.log("LINK DETECTED");
   modifyScore(false, msg);
 });*/
+
+bot.onText(/(\/top)/, (msg, match) => {
+  chatDB.find({},
+    function(err, docs) {
+//      console.log(docs);
+      var sorted = docs.sort(function (a, b) { return parseInt(b.score) - parseInt(a.score) });
+//      docs = (docs.sort(function (a, b) { return parseInt(a.score) <= parseInt(b.score) })).slice(0,12);
+      var top10 = sorted.slice(0,10);
+      console.log(top10);
+      var str = "\n       Beru's Top People       \n--------------------------\n";
+      for(var i=0;i < top10.length; i++) {
+        var d = top10[i];
+        var name = d.first_name;
+	if(d.last_name != undefined && d.first_name != undefined) {
+          name = d.first_name + " " + d.last_name;
+        }
+        else {
+          if(d.first_name != undefined) {
+            name = d.first_name;
+          }
+          else {
+            name = d.username;
+          }
+        }
+        str += `${d.score}  [${d.first_name || d.username}]\n`;
+      }
+      str += "\nScore is determined by how active you are in the BLUE chat. Type /score you check yours";
+      bot.sendMessage(msg.chat.id, str, {});
+    }
+  );
+});
+
+
+
 bot.onText(/(\/score)/, (msg, match) => {
   chatDB.findOne({ user_id: msg.from.id },
     function(err, doc) {
@@ -343,16 +382,18 @@ bot.onText(/(\/score)/, (msg, match) => {
           'disable_web_page_preview': true
         };
         if(doc != undefined) {
-          bot.sendMessage(msg.chat.id, `${msg.from.first_name} score is: ${doc.score}. Going below a score of 1 means your messages will be deleted.`, options);
+          bot.sendMessage(msg.chat.id, `${msg.from.first_name}, your reward score is: ${doc.score} BYZ. Talk more in BLUE chat to improve your score!`, options);
         }
         else {
-          bot.sendMessage(msg.chat.id, `You have no score so far, talk more in BLUE chat to avoid having your links deleted.`, options);
+          bot.sendMessage(msg.chat.id, `You have no score so far, talk more in BLUE chat to improve your score!`, options);
         }
       }
     }
   );
 });
 bot.onText(/(.*)/, (msg, match) => {
+  console.log(` chatID: ${msg.chat.id} --   "${msg.text}"`);
+  console.log(` isBlue: ${"-1001108272084" == msg.chat.id} `);
   if(typeof(msg.entities) != 'undefined') {
     // Contains some kind of URL or image, etc, lose points
     for(var i=0;i<msg.entities.length;i++) {
