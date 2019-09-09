@@ -1,3 +1,5 @@
 node_modules/*
 codes.json
 codes_db
+chat_db
+.env
