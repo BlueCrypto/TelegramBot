@@ -10,6 +10,8 @@ function bluebot() {
   //SET CHAT IDS
   const chatIDs = [-1001108272084,-1001435661947];  
 
+
+
   var fs = require("fs");
   var AsyncLock = require("async-lock");
   var lock = new AsyncLock();
@@ -307,12 +309,12 @@ function bluebot() {
                   console.log("Sucessfully checked ETH address amounts, sending");
                   bot.sendMessage(chatId, `Balance of that address is ${myJson[key].balance / 10 ** 8}BYZ.`, options);
                   return;
-                } else if (myJson[key] && myJson[key].byzAddress == msg.text.substring(9, msg.length)) {
-                  console.log("Sucessfully checked BYZ address amounts, sending");
-                  bot.sendMessage(chatId, `Balance of that address is ${myJson[key].balance / 10 ** 8}BYZ.`, options);
-                  found = true;
-                  return;
-                }
+                } 
+              }else if (myJson[key] && myJson[key].byzAddress == msg.text.substring(9, msg.length)&&/^BYZ3[a-km-zA-HJ-NP-Z1-9]{24,33}$/.test(msg.text.substring(9, msg.length))) {
+                console.log("Sucessfully checked BYZ address amounts, sending");
+                bot.sendMessage(chatId, `Balance of that address is ${myJson[key].balance / 10 ** 8}BYZ.`, options);
+                found = true;
+                return;
               }
             });
             !found ? bot.sendMessage(chatId, `No balance found, you can swap by going to byz.network#swap or downloading the [BLUE wallet](https://chrome.google.com/webstore/detail/blue-worlds-safest-simple/laphpbhjhhgigmjoflgcchgodbbclahk)`, options) : "";
