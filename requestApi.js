@@ -12,6 +12,7 @@ eventsDB.loadDatabase();
 //SET CHAT IDS
 const chatIDs = [-1001108272084,-1001435661947];  
 
+
 const dotenv = require("dotenv");
 dotenv.config();
 const token = process.env.BLUE_BOT_API_KEY;
@@ -76,7 +77,7 @@ function requestApi() {
                 );
                 let byzAdressFormatted = objects[numberOfSwapsFromDatabase].byzAddress.substring(0, 5) + "(...)" + objects[numberOfSwapsFromDatabase].byzAddress.substring(33, 37);
                 let modifier;
-                objects[numberOfSwapsFromDatabase] > objects[numberOfSwapsFromDatabase] ? (modifier = 4) : (modifier = 5);
+                objects[numberOfSwapsFromDatabase] > 8493121 ? (modifier = 4) : (modifier = 5);
 
                 chatIDs.forEach(function(entry) {
                   fetch("https://api.telegram.org/bot" + token + "/sendMessage?parse_mode=markdown&chat_id=" + entry + "&disable_web_page_preview=1&text=Someone just swapped some BLUE \n_" + byzAdressFormatted + "_ is richer by *" + numberWithCommas(amt * modifier) + "BYZ*!\nTotal Swapped " + numberWithCommas(totalSwapped) + " BLUE \n_Current modifier_ *" + modifier + ":1* ! \nDownload the [BLUE wallet](https://chrome.google.com/webstore/detail/blue-worlds-safest-simple/laphpbhjhhgigmjoflgcchgodbbclahk) to swap");
