@@ -4,7 +4,11 @@ function bluebot() {
   const fetch = require("node-fetch");
   const TelegramBot = require("node-telegram-bot-api");
   const cmc = require("cmc-api");
-  const chatIDs = process.env.CHAT_IDS.split(",");
+  // byz chat ID -1001435661947
+  // blue chat ID -1001108272084
+ 
+  //SET CHAT IDS
+  const chatIDs = [-1001108272084,-1001435661947];  
 
   var fs = require("fs");
   var AsyncLock = require("async-lock");

@@ -8,12 +8,15 @@ eventsDB.loadDatabase();
 
 // byz chat ID -1001435661947
 // blue chat ID -1001108272084
-// safu space -291136542
+
+//SET CHAT IDS
+const chatIDs = [-1001108272084,-1001435661947];  
 
 const dotenv = require("dotenv");
 dotenv.config();
 const token = process.env.BLUE_BOT_API_KEY;
-const chatIDs = process.env.CHAT_IDS.split(",");
+
+
 
 function numberWithCommas(x) {
   var parts = x.toString().split(".");
