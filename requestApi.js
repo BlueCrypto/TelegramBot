@@ -9,8 +9,9 @@ eventsDB.loadDatabase();
 // byz chat ID -1001435661947
 // blue chat ID -1001108272084
 
-//SET CHAT IDS
-const chatIDs = [-1001108272084,-1001435661947];  
+  //SET CHAT IDS
+  const chatIDs = [-1001108272084,-1001435661947];  
+  
  
 
 const dotenv = require("dotenv");
