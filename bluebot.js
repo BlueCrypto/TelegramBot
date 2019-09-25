@@ -7,9 +7,8 @@ function bluebot() {
   // byz chat ID -1001435661947
   // blue chat ID -1001108272084
  
-  //SET CHAT IDS
-  const chatIDs = [-1001108272084,-1001435661947];  
-
+   //SET CHAT IDS
+   const chatIDs = [-1001108272084,-1001435661947];  
 
 
   var fs = require("fs");
@@ -23,6 +22,17 @@ function bluebot() {
   const token = process.env.BLUE_BOT_API_KEY;
 
   const bot = new TelegramBot(token, { polling: true });
+  const admins = [
+    "@EllenMB",
+    "@The_realest_lego_batman",
+    "@AdrianXXX",
+    "@dabba",
+    "@ECGBlue",
+    "@walkman",
+    "@Brouu",
+    "@TheReallyRealLegoJoker",
+    "@jorisvh"
+    ];
 
   // ------ MISC -----------
   function replaceAll(str, find, replace) {
@@ -96,6 +106,8 @@ function bluebot() {
     "/btc": "",
     "/gas": "",
     "/balance": "",
+    "/spam": "",
+    "/admin": "",
     "/swaps": ""
   };
   // the help command lists all of the available commands
@@ -290,7 +302,11 @@ function bluebot() {
       bot.sendMessage(chatId, `BTC will be around $${price} in the next 24 hours or so.`);
     } else if (command == "/balance") {
       console.log("Checking if address is valid");
-      if (/^BYZ3[a-km-zA-HJ-NP-Z1-9]{24,33}$/.test(msg.text.substring(9, msg.length)) || /^0x[a-fA-F0-9]{40}$/.test(msg.text.substring(9, msg.length))) {
+      let address = msg.text.substring(8, msg.length).trim().toLowerCase();
+      console.log(address);
+      console.log(/^byz3[a-z0-9]{24,33}$/.test(address));
+      console.log(/^0x[a-fA-F0-9]{40}$/.test(address));
+      if (/^byz3[a-z0-9]{24,33}$/.test(address) || /^0x[a-fA-F0-9]{40}$/.test(address)) {
         console.log("Fetching");
         fetch("https://api.byz.network/api/allWallets")
           .then(function(response) {
@@ -303,20 +319,23 @@ function bluebot() {
             console.log("Checking JSON response");
 
             Object.keys(myJson).forEach(function(key) {
-              if (/^0x[a-fA-F0-9]{40}$/.test(msg.text.substring(9, msg.length))) {
-                if (myJson[key] && myJson[key].ethAddress == msg.text.substring(9, msg.length)) {
+              //console.log(myJson[key] + "<key " + myJson[key].ethAddress.toLowerCase() + "<check against " + address+  "<address test for BYZ>" +/^BYZ3[a-km-zA-HJ-NP-Z1-9]{24,33}$/.test(address));
+
+              if (/^0x[a-fA-F0-9]{40}$/.test(address)) {
+                if (myJson[key] && myJson[key].ethAddress.toLowerCase() == address) {
                   found = true;
                   console.log("Sucessfully checked ETH address amounts, sending");
                   bot.sendMessage(chatId, `Balance of that address is ${myJson[key].balance / 10 ** 8}BYZ.`, options);
                   return;
                 } 
-              }else if (myJson[key] && myJson[key].byzAddress == msg.text.substring(9, msg.length)&&/^BYZ3[a-km-zA-HJ-NP-Z1-9]{24,33}$/.test(msg.text.substring(9, msg.length))) {
+              }else if (myJson[key] && myJson[key].byzAddress.toLowerCase() == address&&/^byz3[a-z0-9]{24,33}$/.test(address)) {
                 console.log("Sucessfully checked BYZ address amounts, sending");
                 bot.sendMessage(chatId, `Balance of that address is ${myJson[key].balance / 10 ** 8}BYZ.`, options);
                 found = true;
                 return;
               }
             });
+            
             !found ? bot.sendMessage(chatId, `No balance found, you can swap by going to byz.network#swap or downloading the [BLUE wallet](https://chrome.google.com/webstore/detail/blue-worlds-safest-simple/laphpbhjhhgigmjoflgcchgodbbclahk)`, options) : "";
           });
       } else {
@@ -353,6 +372,26 @@ function bluebot() {
           console.log("Got gas pricess sucssfully, sending");
           bot.sendMessage(chatId, `*Current gas prices*\nFast *${myJson.fast / 10}gwei* - time of ${myJson.fastWait}min.\nFastest *${myJson.fastest / 10}gwei* - wait time of  ${myJson.fastestWait}min.\nSafeLow *${myJson.safeLow / 10}gwei* - wait time of ${myJson.safeLowWait}min.\nAverage *${myJson.average / 10}*gwei -  wait time of ${myJson.avgWait}min.`, options);
         });
+        
+    } else if (command == "/admin" || command == "/spam") {
+
+      function pickRandomAdmin() {
+        let randomAdminOne = admins[Math.floor(Math.random() * admins.length)];
+        console.log("random admin " + randomAdminOne);
+        let randomAdminTwo = admins[Math.floor(Math.random() * admins.length)];
+        console.log("random admin " + randomAdminTwo);
+        randomAdminOne==randomAdminTwo ? pickRandomAdmin() : "";
+        let message = `Paging admins 📟 ${randomAdminOne} and ${randomAdminTwo}!`;
+        randomAdminOne=="@dabba"? message+= "	CODE BLUE🎣 !" : "";
+        randomAdminTwo=="@dabba"? message+= "	CODE BLUE🐬 !" : "";
+        console.log(message);
+        bot.sendMessage(chatId, message, options)
+      
+        
+      }
+
+      pickRandomAdmin();
+
     } else if (is_valid_command) {
       var safe_user = replaceAll(user, "_", "");
       if (user) {
